@@ -1,50 +1,57 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"os"
+ "bufio"
+ "fmt"
+ "os"
 )
 
 func maskLinks(input string) string {
-	// Преобразуем строку в байтовый срез
-	inputBytes := []byte(input)
-	outputBytes := make([]byte, len(inputBytes))
-	copy(outputBytes, inputBytes) // Копируем данные в outputBytes
+ inputBytes := []byte(input)
+ outputBytes := make([]byte, len(inputBytes))
+ copy(outputBytes, inputBytes) // Копируем данные в outputBytes
 
-	// Ищем ссылки
-	i := 0
-	for i < len(inputBytes) {
-		// Ищем начало ссылки
-		if i+4 < len(inputBytes) && inputBytes[i] == 'h' && inputBytes[i+1] == 't' && inputBytes[i+2] == 't' && inputBytes[i+3] == 'p' && inputBytes[i+4] == ':' {
-			j := i + 7 // Пропускаем "http://"
+ i := 0
+ for i < len(inputBytes) {
+  // Проверяем, начинается ли с "http://" или "https://"
+  if i+7 <= len(inputBytes) && string(inputBytes[i:i+7]) == "http://" {
+   j := i + 7
+   for j < len(inputBytes) && inputBytes[j] != ' ' {
+    j++
+   }
 
-			// Продолжаем пока не достигнем пробела или конца строки
-			for j < len(inputBytes) && inputBytes[j] != ' ' {
-				j++
-			}
+   // Маскируем ссылку в выходном байтовом срезе
+   for k := i + 7; k < j; k++ {
+    outputBytes[k] = '*' // Заменяем на '*'
+   }
 
-			// Маскируем ссылку в выходном байтовом срезе
-			for k := i + 7; k < j; k++ {
-				outputBytes[k] = '*' // Заменяем на '*'
-			}
+   i = j // Обновляем индекс i
+  } else if i+8 <= len(inputBytes) && string(inputBytes[i:i+8]) == "https://" {
+   j := i + 8
+   for j < len(inputBytes) && inputBytes[j] != ' ' {
+    j++
+   }
 
-			// Обновляем индекс i
-			i = j
-		} else {
-			i++
-		}
-	}
+   // Маскируем ссылку в выходном байтовом срезе
+   for k := i + 8; k < j; k++ {
+    outputBytes[k] = '*' // Заменяем на '*'
+   }
 
-	// Возвращаем результирующую строку из байтового среза
-	return string(outputBytes)
+   i = j // Обновляем индекс i
+  } else {
+   i++
+  }
+ }
+
+ return string(outputBytes)
 }
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
-	_ = scanner.Scan() // на этом месте
-	str := scanner.Text()
+ scanner := bufio.NewScanner(os.Stdin)
+ fmt.Println("Введите строку:")
+ _ = scanner.Scan() // Считываем строку
+ str := scanner.Text()
 
-	output := maskLinks(str)
-	fmt.Println("Output:", output) // Ожидаемый вывод: "Hello, its my page: http://**************** See you"
+ output := maskLinks(str)
+ fmt.Println("Output:", output) // Ожидаемый вывод с замаскированными адресами
 }
